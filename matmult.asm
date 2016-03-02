@@ -126,13 +126,6 @@ endc:
          jmp nextr
      
 endloop: 
-           
-         ;
-         ; *********************************************
-         ;              YOUR CODE GOES HERE
-         ; *********************************************
-         ;
-
          pop  rbp                ; restore base pointer & return
          ret
 
@@ -142,6 +135,69 @@ matrix_mult:                    ; void matix_mult (matrix A, matrix B)
 
          push rbp                ; setup base pointer
          mov  rbp, rsp
+
+         mov r8, [rax]          ; put ROWS into register r8
+         mov r9, [rax + 8]      ; put COLS into register r9
+;         mov rci, [rax + 16]    ; rci is now pointing to matrix C
+
+         mov r10, [rbp + 24]     ; r10 is now pointing to matrix A
+         add r10, 16             ; the stack pointer is pointing to the elems of A
+         mov r11, [rbp + 32]     ; r11 is now pointing to matrix B
+         add r11, 16             ; the s.p. is now pointing to the elems of B
+;         mov r12, [rbp + 40]     ; r12 is now pointing to matrix C
+;         add r12, 16             ; the s.p. is now pointing to the elems of C
+         
+
+                                 ; for(int row = 0; row < this.ROWS; row++)
+         mov rcx, 0              ; row = 0
+forr:    cmp  rcx, r8            ; compare row and this.ROWS
+         jge endmulloop             ; jump to endloop if row >= this.ROWS
+
+                                 ; for(int col = 0, col < this.COLS; col++)
+         mov rdx, 0              ; col = 0
+forc:    cmp rdx, r9             ; compare col and this,COLS
+         jge endCMul             ; jump to forr if col >= this.COLS
+
+         mov rsi, 0              ; sum = 0
+                                 
+                                 ; for(int k = 0; k < A.elem[row, k] * B.elem[k, col]
+         mov rbx, 0              ; k = 0
+fork:    cmp rbx, [r10 + 24]     ; compare k and A.COLS
+         jge endk                ; jump to forc if k >= A.COLS
+
+         mov rdi, rcx             ; move row into rdi
+         imul rdi,r9              ; row * this.COLS
+         add rdi, rbx             ; row * this.COLS + k
+
+         mov r13,[r10 + 8*rdi]    ; find the location of elements of matrix A
+
+         mov rdi, rbx             ; move k into rdi
+         imul rdi, r9             ; k * this.COLS
+         add rdi, rdx             ; k * this.COLS + col 
+
+         imul r13, [r11 + 8*rdi]  ; A.elem[row, k]* B.elem[k, col]
+         add rsi, r13             ; sum + A.elem[row, k] * B.elem[k, col]
+;         mov rsi, rsi             ; sum = sum + A.elem[row, k] * B.elem[k, col]
+
+         inc rbx                 ; k++
+         jmp fork                
+
+endk:    
+                                ;this,elem [row, col] = sum; 
+         mov rdi, rcx           ; move row into rsi
+         imul rdi,r9            ; row * COLS 
+         add rdi, rdx           ; row * COLS + col  
+         mov [rax + 16 + 8*rdi], rsi
+                               
+         inc rdx                 ; col++
+         jmp forc
+ 
+endCMul:  
+         inc rcx                 ; row++
+         jmp forr
+
+endmulloop:
+
 
          ;
          ; *********************************************
