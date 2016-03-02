@@ -92,50 +92,40 @@ matrix_print:                   ; void matrix_print ()
 
          call output_newline    ; calling the method output_newline
 
-;ROWS     dq 0                 ; declare ROWS
-;COLS     dq 0                 ; declare COLS
-
-         mov  r8, [rbp + 16]  ; put ROWS into register r8
-;         push qword [r9]
-;         call output_int
-;         add  rsp, 8
-
-         mov r9, [rbp + 24]     ; put COLS into register r9 
-;         push qword[r10]
-;         call output_int
-;         add rsp, 8
-
-;         mov rsi, [rbp + 8]     ; put ROWS into a new r for mul
-;         imul rsi, [rbp + 16]   ; ROWS * COLS
-         
-;elem    resq [rsi]              ; declare int elem [ROWS][COLS]
+         mov  r8, [rax]         ; put ROWS into register r8
+         mov r9, [rax + 8]      ; put COLS into register r9 
 
                                 ; for(int row = 0; row < this.ROWS; row++)
          mov rcx, 0             ; row = 0
 nextr:   cmp rcx, r8            ; compare row and this.ROWS
-;         mov r10, [rbp + 32]    ; move the 1st row into r10
-;         push qword [r10]       ; push the values of the 1st row onto stack
-         jge endloop            ; jump to endr if row >= this.ROWS
+         jge endloop            ; jump to endloop if row >= this.ROWS
 
                                 ; for(int col = 0; col < this.COLS; cols++)
          mov rdx, 0             ; col = 0
 nextc:   cmp rdx, r9            ; compare col and this.COLS
          jge endc               ; jump to endc if col >= this.COLS              
 
+         mov rsi, rcx           ; move row into rsi
+         imul rsi,r9            ; row * COLS 
+         add rsi, rdx           ; row * COLS + col  
+
          call output_tab        ; output.tab()        
-         mov r10, [rbp + 32]    ; move the 1st row into r10
-         push qword [r10]       ; push the values onto the stack
-        ;push the numbers we want to print out to the stack
+         mov r10, [rax + 16 + 8*rsi]
+                                ; move the bytes from matrix into r10
+         push r10               ; push the values onto the stack
+
          call output_int        ; output.int() 
          add rsp, 8
 
          inc rdx                ; col++
          jmp nextc
     
-endc:    inc rcx                ; row++
+endc:
          call output_newline    ; call the method output.newline()      
-
-endloop:
+         inc rcx                ; row++
+         jmp nextr
+     
+endloop: 
            
          ;
          ; *********************************************
