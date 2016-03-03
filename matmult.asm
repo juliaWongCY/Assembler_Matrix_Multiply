@@ -110,7 +110,7 @@ nextc:   cmp rdx, r9            ; compare col and this.COLS
          add rsi, rdx           ; row * COLS + col  
 
          call output_tab        ; output.tab()        
-         mov r10, [rax + 16 + 8*rsi]
+         mov r10, [rax + 16 + 8 * rsi]
                                 ; move the bytes from matrix into r10
          push r10               ; push the values onto the stack
 
@@ -138,44 +138,44 @@ matrix_mult:                       ; void matix_mult (matrix A, matrix B)
 
          mov r14, [rbp + 16]       ; locate matrix C 
 
-         mov r8, [r14]             ; put ROWS into register r8
-         mov r9, [r14 + 8]         ; put COLS into register r9
-         add r14, 16 
+         mov r8, [r14]             ; put this.ROWS into register r8 (MatC)
+         mov r9, [r14 + 8]         ; put this.COLS into register r9 (MatC)
+         add r14, 16               ; pointer pointing to the elems in C
 
          mov r10, [rbp + 24]       ; r10 is now pointing to matrix A
-         add r10, 16               ; the stack pointer is pointing to the elems of A
+         add r10, 16               ; pointer pointint to the elems in A
 
          mov r11, [rbp + 32]       ; r11 is now pointing to matrix B
-         add r11, 16               ; the s.p. is now pointing to the elems of B
+         add r11, 16               ; pointer pointing to the elems in B
        
                                    ; for(int row = 0; row < this.ROWS; row++)
          mov rcx, 0                ; row = 0
 forr:    cmp  rcx, r8              ; compare row and this.ROWS
-         jge endmulloop            ; jump to endloop if row >= this.ROWS
+         jge endmulloop            ; jump to endmulloop if row >= this.ROWS
 
                                    ; for(int col = 0, col < this.COLS; col++)
          mov rdx, 0                ; col = 0
 forc:    cmp rdx, r9               ; compare col and this.COLS
-         jge endCMul               ; jump to forr if col >= this.COLS
+         jge endCMul               ; jump to endCMul if col >= this.COLS
 
          mov rsi, 0                ; sum = 0
                                  
          ; for(int k = 0; k < A.elem[row, k] * B.elem[k, col]
          mov rbx, 0                ; k = 0
 fork:    cmp rbx, [r10 - 8]        ; compare k and A.COLS
-         jge endk                  ; jump to forc if k >= A.COLS
+         jge endk                  ; jump to endk if k >= A.COLS
 
          mov rdi, rcx              ; move row into rdi
          imul rdi,[r10 - 8]        ; row * A.COLS
          add rdi, rbx              ; row * A.COLS + k
 
-         mov r13,[r10 + 8*rdi]     ; find the location of elements of matrix A
+         mov r13,[r10 + 8 * rdi]   ; find the location of elements of matrix A
 
          mov rdi, rbx              ; move k into rdi
-         imul rdi, [r11 - 8]          ; k * B.COLS
+         imul rdi, [r11 - 8]       ; k * B.COLS
          add rdi, rdx              ; k * B.COLS + col 
 
-         imul r13, [r11 + 8*rdi]   ; A.elem[row, k]* B.elem[k, col]
+         imul r13, [r11 + 8 * rdi] ; A.elem[row, k]* B.elem[k, col]
          add rsi, r13              ; sum + A.elem[row, k] * B.elem[k, col]
 
          inc rbx                   ; k++
@@ -186,7 +186,7 @@ endk:
          mov rdi, rcx              ; move row into rsi
          imul rdi,r9               ; row * COLS 
          add rdi, rdx              ; row * COLS + col  
-         mov [r14 + 8 * rdi], rsi
+         mov [r14 + 8 * rdi], rsi  ; this.elem [row, col] = sum
                                
          inc rdx                   ; col++
          jmp forc
